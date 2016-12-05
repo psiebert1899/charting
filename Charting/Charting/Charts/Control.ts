@@ -2,63 +2,96 @@
     export class Control {
         private _lines: Core.Objects.Line[];
         private _areas: Core.Objects.Area[];
+        private _points: Core.Objects.Point[];
         private _xScale: Core.Objects.Scale;
         private _yScale: Core.Objects.Scale;
         private _xAccess: (d) => any;
         private _yAccess: (d) => any;
-        private _y1Access: (d) => any;
         private _data: any[];
         private _formattedData: any[];
-        private numSds: number;
+        private numSds: number = 3;
+        private _max: number;
+        public statusMap: Util.SdStatusData[];
+        get max() {
+            return this._max;
+        }
+        set max(maxData: number) {
+            this._max = maxData;
+            this.trimToMaxData(maxData);
+        }
 
+        constructor(xScale: Core.Objects.Scale, yScale: Core.Objects.Scale, xAccess: (d) => any, yAccess: (d) => any, data: any[],statusMap ?: Util.SdStatusData[]) {
+            this._lines = new Array<Core.Objects.Line>();
+            this._areas = new Array<Core.Objects.Area>();
+            this._xScale = xScale;
+            this._yScale = yScale;
+            this._xAccess = xAccess;
+            this._yAccess = yAccess;
+            this.statusMap = statusMap;
+            this.formatDataArray(data);
+            this.makeLines();
+            this.makeAreas();
+            this._points = new Array<Core.Objects.Point>();
+            this.makePoints();
+        }
         init(caller: any) {
+            this.checkScaleUpdates();
+
             this.drawObjects(caller);
+            this.createAxis(caller);
             //same process for trend lines and points
             //also initialize axes and labels
         }
 
 
-        addDataPoint(point: any) {
+        addDataPoint(caller:any,point: any) {
             this._data.push(point);
             let formattedPoint = this.formatDataPoint(point);
             this._formattedData.push(formattedPoint);
-            for (let x = 0; x < this._lines.length; x++) {
-                this._lines[x].addDataPoint(formattedPoint);
-            }
-            for (let x = 0; x < this._areas.length; x++) {
-                this._areas[x].addDataPoint(formattedPoint);
-            }
+            this.trimToMaxData(this._max);
+            this.checkScaleUpdates();
+            this.drawObjects(caller);
             //when new point added to all display items, redraw the chart
 
         }
         private drawObjects(caller: any) {
-            this.drawLines(caller);
             this.drawAreas(caller);
+            this.drawLines(caller);
+            this.drawPoints(caller);
+
         }
         private drawLines(caller: any) {
             for (let x = 0; x < this._lines.length; x++) {
-                this._lines[x].run(caller, this._data);
+                this._lines[x].run(caller, this._formattedData);
             }
         }
         private drawAreas(caller: any) {
 
             for (let x = 0; x < this._areas.length; x++) {
-                this._areas[x].run(caller, this._data);
+                this._areas[x].run(caller, this._formattedData);
             }
         }
         private drawPoints(caller: any) {
-
+            for (let x = 0; x < this._points.length; x++) {
+                this._points[x].run(caller, this._formattedData);
+            }
+        }
+        private formatDataArray(data: any[]) {
+            this._formattedData = [];
+            this._data = [];
+            for (let x = 0; x < data.length; x++) {
+            this._data.push(data[x]);
+                this._formattedData.push(this.formatDataPoint(data[x]));
+            }
+            this.trimToMaxData(this._max);
         }
         private formatDataPoint(point) {
             let obj = {};
             obj['x'] = this._xAccess(point);
             obj['y'] = this._yAccess(point);
-            obj['y1'] = this._y1Access(point);
-
             let mean = this.calculateMean(this._data);
             let sd = this.calculateSd(this._data);
             for (let x = 0; x <= this.numSds; x++) {
-                //here we will need to add object data for both +x and -x
                 let posName = "sd" + x;
                 let negName = "sdNeg" + x;
                 obj[posName] = mean + (sd * x);
@@ -70,33 +103,82 @@
             return d3.mean(this._data, (d) => { return this._yAccess(d) });
         }
         private calculateSd(data: any) {
-            return d3.deviation(this._data, (d) => { return this._yAccess(d) });
+            if (this._data.length < 2) {
+                return this._yAccess(this._data[0]);
+            } else {
+                return d3.deviation(this._data, (d) => { return this._yAccess(d) });
+            }
         }
         private makeLines() {
-            for (let x = 0; x < this.numSds; x++) {
+            for (let x = 1; x <= this.numSds; x++) {
                 let posName = "sd" + x;
                 let negName = "sdNeg" + x;
-                this._lines.push(new Core.Objects.Line(this._xScale, this._yScale, (d) => { return d['x'] }, (d) => { return d['sd' + x] }));
-                this._lines.push(new Core.Objects.Line(this._xScale, this._yScale, (d) => { return d['x'] }, (d) => { return d['sdNeg' + x] }));
+                this._lines.push(new Core.Objects.Line(this._xScale, this._yScale, (d) => { return d['x'] }, (d) => { return d[posName] }));
+                this._lines.push(new Core.Objects.Line(this._xScale, this._yScale, (d) => { return d['x'] }, (d) => { return d[negName] }));
             }
+            //make mean line
+            this._lines.push(new Core.Objects.Line(this._xScale, this._yScale, (d) => { return d['x'] }, (d) => { return d['sd0'] }, ['meanLine']));
+            //make trendline
+            this._lines.push(new Core.Objects.Line(this._xScale, this._yScale, (d) => { return d['x'] }, (d) => { return d['y'] }));
         }
 
         private makeAreas() {
             for (let x = 0; x < this.numSds; x++) {
-                if (x + 1 >= this.numSds) {
-                    this._areas.push(new Core.Objects.Area(this._xScale, this._yScale, (d) => { return d['x'] }, (d) => { return d['sd' + x] }, (d) => { return this._yScale.rangeTop }));
-                } else {
-                    if (Math.abs(x - 1) > this.numSds) {
-                        this._areas.push(new Core.Objects.Area(this._xScale, this._yScale, (d) => { return d['x'] }, (d) => { return d['sd' + x] }, (d) => { return this._yScale.rangeBottom }));
-                    } else {
+                
+                //now we must create the negative area and the positive areas
+                this._areas.push(new Core.Objects.Area(this._xScale, this._yScale, (d) => { return d['x'] }, (d) => { return d['sd'+x] }, (d) => { return d['sd'+(x+1)] },this.getStatusObj(x)));
+                this._areas.push(new Core.Objects.Area(this._xScale, this._yScale, (d) => { return d['x'] }, (d) => { return d['sdNeg' + (x + 1)] }, (d) => { return d['sdNeg' + x] }, this.getStatusObj(-x)));
 
+                //now make the terminal areas (areas for the ends of the chart
+            }
+            this._areas.push(new Core.Objects.Area(this._xScale, this._yScale, (d) => { return d['x'] }, (d) => { return d['sdNeg' + (this.numSds)] }, (d) => { return this._yScale.rangeMin }, this.getStatusObj(-this.numSds)));
+            this._areas.push(new Core.Objects.Area(this._xScale, this._yScale, (d) => { return d['x'] }, (d) => { return d['sd' + this.numSds] }, (d) => { return this._yScale.getObject().invert(this._yScale.rangeMax) }, this.getStatusObj(this.numSds)));
+
+        }
+        
+
+        private makePoints() {
+            this._points.push(new Core.Objects.Point(this._xScale, this._yScale, (d) => { return d['x'] }, (d) => { return d['y'] }));
+        }
+        private trimToMaxData(max: number) {
+            this._formattedData = this._formattedData.slice(this._max * -1)
+
+        }
+        private checkScaleUpdates() {
+            this._xScale.domainMin = d3.min(this._formattedData, (d) => { return this._xAccess(d) });
+            this._xScale.domainMax = d3.max(this._formattedData, (d) => { return this._xAccess(d) });
+            let minArray = [];
+            let maxArray = [];
+            for (let x = 0; x < this._lines.length; x++) {
+                minArray.push(d3.min(this._formattedData, (d) => { return this._lines[x].yAccessor(d) }));
+                maxArray.push(d3.max(this._formattedData, (d) => { return this._lines[x].yAccessor(d) }));
+            }
+            let minmin = d3.min(minArray);
+            let maxmax = d3.max(maxArray);
+            if (minmin < this, this._yScale.domainMin) {
+                this._yScale.domainMin = minmin-500;
+            }
+            if (maxmax > this._yScale.domainMax) {
+                this._yScale.domainMax = maxmax+500;
+            }
+        }
+        private createAxis(caller: any) {
+            let yaxe = d3.axisLeft(this._yScale.getObject());
+            let xaxe = d3.axisBottom(this._xScale.getObject());
+
+        }
+        getStatusObj(sdNum: number): Util.SdStatusData {
+            console.log(this.statusMap);
+            if (this.statusMap === null || this.statusMap === undefined) {
+                return new Util.SdStatusData();
+            } else {
+                for (let entry = 0; entry < this.statusMap.length; entry++) {
+                    if (this.statusMap[entry].sdNumber === sdNum) {
+                        return this.statusMap[entry];
                     }
                 }
             }
-        }
-
-        private makePoints() {
-
+            return new Util.SdStatusData();
         }
     }
 }

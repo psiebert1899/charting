@@ -8,6 +8,7 @@
         protected classes: string[];
         protected events: Util.Event[];
         protected styles: Util.Attribute[];
+        protected statusObj: Util.SdStatusData;
 
         set Styles(styles: Util.Attribute[]) {
             this.styles = styles;
@@ -71,6 +72,22 @@
         protected applyStyles(caller: any) {
             for (let x = 0; x < this.styles.length; x++) {
                 caller.selectAll("." + this.selector).style(this.styles[x].key, this.styles[x].value);
+            }
+        }
+        protected applyStatusData(caller: any, statusObject: Util.SdStatusData) {
+            if (statusObject.attrs !== null && statusObject.attrs !== undefined) {
+                for (let x = 0; x < statusObject.attrs.length; x++) {
+                    caller.selectAll("." + this.selector).attr(statusObject.attrs[x].key, statusObject.attrs[x].value);
+                }
+            }
+            if (statusObject.color !== null && statusObject.color !== undefined) {
+                caller.selectAll("." + this.selector).style("fill", statusObject.color);
+                caller.selectAll("." + this.selector).style("stroke", statusObject.color);
+            }
+            if (statusObject.classNames !== null && statusObject.classNames !== undefined) {
+                for (let x = 0; x < statusObject.classNames.length; x++) {
+                    caller.selectAll("." + this.selector).classed(statusObject.classNames[x], true);
+                }
             }
         }
         abstract doEnterPhase(caller: any, data: any[]);

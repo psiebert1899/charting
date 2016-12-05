@@ -4,12 +4,39 @@
 <head>
     <meta charset="utf-8" />
     <title>TypeScript HTML App</title>
-    <link rel="stylesheet" href="app.css" type="text/css" />
+    <link rel="stylesheet" href="app.css" type="text/css"/>
+    <script src="Scripts/d3/d3.js"></script>
+    <script src="https://d3js.org/d3-time.v1.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="Core/Models/DataItem.js"></script>
+    <script src="Util/SdStatusData.js"></script>
+    <script src="Core/Models/StandardDeviationData.js"></script>
+    <script src="Core/Models/ArrayedDataItem.js"></script>
+    <script src="Core/Models/NonArrayedDataItem.js"></script>
+    <script src="Core/Objects/Area.js"></script>
+    <script src="Core/Objects/Line.js"></script>
+    <script src="Core/Objects/Scale.js"></script>
+    <script src="Core/Objects/Point.js"></script>
+    <script src="Core/Patterns/Observers/IDataObservable.js"></script>
+    <script src="Core/Patterns/Observers/IDataObserver.js"></script>
+    <script src="Core/Patterns/Observers/IScaleObservable.js"></script>
+    <script src="Core/Patterns/Observers/IScaleObserver.js"></script>
+    <script src="Util/Attribute.js"></script>
+    <script src="Util/DisplayOptions.js"></script>
+    <script src="Util/Event.js"></script>
+    <script src="Core/Interfaces/IPlottable.js"></script>
+    <script src="Charts/ChartBuilders/ControlBuilder.js"></script>
+    <script src="Charts/Control.js"></script>
     <script src="app.js"></script>
 </head>
 <body>
-    <h1>TypeScript HTML App</h1>
+<h1>TypeScript HTML App</h1>
 
-    <div id="content"></div>
+<div id="content"></div>
 </body>
+<script>
+    let ex = new example();
+    ex.init("content");
+    ex.automate(500);
+</script>
 </html>

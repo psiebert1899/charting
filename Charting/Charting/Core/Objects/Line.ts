@@ -9,15 +9,25 @@ namespace Core.Objects {
         private _yScale: Core.Objects.Scale;
         private _xAccess: (d) => any;
         private _yAccess: (d) => any;
+        get yAccessor() {
+            return this._yAccess;
+        }
         private _d3Object: any;
+        private _standardStylingClassName="d3Line";
 
-        constructor(xScale, yScale, xAccess, yAccess) {
+        constructor(xScale, yScale, xAccess, yAccess,classNames?:string[]) {
             super();
             this._xScale = xScale;
             this._yScale = yScale;
             this._xAccess = xAccess;
             this._yAccess = yAccess;
             this.type = "path";
+            this.classes = new Array<string>();
+            if (classNames !== undefined) {
+                this.classes = classNames;
+
+            }
+            this.classes.push(this._standardStylingClassName);
         }
         getObject() {
             if (this.check()) {
@@ -50,7 +60,7 @@ namespace Core.Objects {
             if (this._d3Object === undefined || this._d3Object === null) {
                 this.build();
             }
-            this.doCycle(caller, data);
+            this.doCycle(caller, data,this._d3Object);
         }
 
         updateScales(xScale: Core.Objects.Scale, yScale: Core.Objects.Scale) {
@@ -64,6 +74,8 @@ namespace Core.Objects {
             this.build();
         }
         assignUniqueSelector() {
+            let now = Math.floor(new Date().getTime()*Math.random());
+            this.selector = "line" + now;
             this.selectorLocked = true;
         }
     }

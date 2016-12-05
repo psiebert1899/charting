@@ -24,12 +24,39 @@
   <ItemGroup>
     <Content Include="app.css" />
     <Content Include="index.html" />
+    <Content Include="Scripts\d3\d3.js" />
+    <Content Include="Scripts\d3\d3.min.js" />
     <Content Include="web.config" />
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="app.ts" />
+    <TypeScriptCompile Include="Charts\ChartBuilders\ControlBuilder.ts" />
+    <TypeScriptCompile Include="Charts\Control.ts" />
+    <TypeScriptCompile Include="Core\Interfaces\IPlottable.ts" />
+    <TypeScriptCompile Include="Core\Models\ArrayedDataItem.ts" />
+    <TypeScriptCompile Include="Core\Models\DataItem.ts" />
+    <TypeScriptCompile Include="Core\Models\NonArrayedDataItem.ts" />
+    <TypeScriptCompile Include="Core\Models\StandardDeviationData.ts" />
+    <TypeScriptCompile Include="Core\Objects\Area.ts" />
+    <TypeScriptCompile Include="Core\Objects\Line.ts" />
+    <TypeScriptCompile Include="Core\Objects\Point.ts" />
+    <TypeScriptCompile Include="Core\Objects\Scale.ts" />
+    <TypeScriptCompile Include="Core\Patterns\Observers\IDataObservable.ts" />
+    <TypeScriptCompile Include="Core\Patterns\Observers\IDataObserver.ts" />
+    <TypeScriptCompile Include="Core\Patterns\Observers\IScaleObservable.ts" />
+    <TypeScriptCompile Include="Core\Patterns\Observers\IScaleObserver.ts" />
+    <TypeScriptCompile Include="Util\Attribute.ts" />
+    <TypeScriptCompile Include="Util\DisplayOptions.ts" />
+    <TypeScriptCompile Include="Util\Event.ts" />
+    <TypeScriptCompile Include="Util\SdStatusData.ts" />
+    <TypeScriptCompile Include="Util\StatusMap.ts" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Scripts\d3\README.md" />
+    <Content Include="Scripts\d3\LICENSE" />
+    <Content Include="Scripts\d3\CHANGES.md" />
+    <Content Include="Scripts\d3\API.md" />
+    <Content Include="packages.config" />
     <None Include="web.Debug.config">
       <DependentUpon>web.config</DependentUpon>
     </None>
@@ -37,6 +64,7 @@
       <DependentUpon>web.config</DependentUpon>
     </None>
   </ItemGroup>
+  <ItemGroup />
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">12.0</VisualStudioVersion>
   </PropertyGroup>

@@ -7,20 +7,21 @@
         private _y0Access: (d) => any;
         private _y1Access: (d) => any;
         private _d3Object: any;
-        constructor(xScale: Core.Objects.Scale, yScale: Core.Objects.Scale, xAccess: (d) => any, y0Access: (d) => any, y1Access: (d) => any) {
+        constructor(xScale: Core.Objects.Scale, yScale: Core.Objects.Scale, xAccess: (d) => any, y0Access: (d) => any, y1Access: (d) => any,statusObj:Util.SdStatusData) {
             super();
             this._xScale = xScale;
             this._yScale = yScale;
             this._xAccess = xAccess;
             this._y0Access = y0Access;
             this._y1Access = y1Access;
+            this.statusObj = statusObj;
             this.type = "path";
         }
         run(caller: any, data: any[]) {
             if (this._d3Object === undefined || this._d3Object === null) {
                 this.build();
             }
-            this.doCycle(caller, data);
+            this.doCycle(caller, data,this._d3Object);
         }
         getObject() {
             if (this.check()) {
@@ -51,7 +52,7 @@
         updateScales(xScale: Objects.Scale, yScale: Objects.Scale) {
             this._xScale = xScale;
             this._yScale = yScale;
-            this.build;
+            this.build();
         }
         updateAccessors(xAccess: (d) => any, yAccess: (d) => any, y1Access: (d) => any) {
             this._xAccess = xAccess;
@@ -60,6 +61,7 @@
             this.build();
         }
         assignUniqueSelector() {
+            this.selector = "a" + (Math.floor(new Date().getTime() * Math.random()));
             this.selectorLocked = true;
         }
     }

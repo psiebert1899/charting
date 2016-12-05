@@ -2,6 +2,12 @@
     font-family: 'Segoe UI', sans-serif;
 }
 
-span {
-    font-style: italic;
+.d3Line {
+    fill: none;
+    stroke: blue;
+    stroke-width: 2px;
+}
+.ccPoint {
+    fill: white;
+    stroke: white;
 }
