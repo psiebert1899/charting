@@ -5,6 +5,7 @@
         private _xAccess: (d) => any;
         private _yAccess: (d) => any;
         private _d3Object: any;
+        public pointRadius:number;
         constructor(xScale: Core.Objects.Scale, yScale: Core.Objects.Scale, xAccess: (d) => any, yAccess: (d) => any) {
             super();
             this._xScale = xScale;
@@ -12,7 +13,7 @@
             this._xAccess = xAccess;
             this._yAccess = yAccess;
             this.type = "circle";
-            this.attrs = [new Util.Attribute("r", (d) => { return 4; }), new Util.Attribute("cx", (d) => { return this._xScale.getObject()(this._xAccess(d)) }), new Util.Attribute("cy", (d) => { return this._yScale.getObject()(this._yAccess(d)) })];
+            this.attrs = [new Util.Attribute("r", (d) => { return this.pointRadius; }), new Util.Attribute("cx", (d) => { return this._xScale.getObject()(this._xAccess(d)) }), new Util.Attribute("cy", (d) => { return this._yScale.getObject()(this._yAccess(d)) })];
             this.classes = ["ccPoint"];
         }
         run(caller: any, data: any[]) {

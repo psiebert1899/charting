@@ -21,19 +21,23 @@
             this.timeIndex++;
         }
         this.data = data;
-        let svgDisplay = new Util.DisplayOptions(500, 500, 0, 0);
-        let chartDispaly = new Util.DisplayOptions(450, 450, 50, 50);
-        let svg = d3.select("#" + selector).append("svg").attr("width", 500).attr("height", 500);
+        let svgDisplay = new Util.DisplayOptions(600, 600, 0, 0);
+        let chartDispaly = new Util.DisplayOptions(0,0, 50, 50);
+        let svg = d3.select("#" + selector).append("svg").attr("width", svgDisplay.width).attr("height", svgDisplay.height);
         let chart = svg.append("g").classed("test", true).attr("transform", "translate(" + chartDispaly.marginLeft + "," + chartDispaly.marginTop + ")");
         this.chart = chart;
         let builder = new Charts.Builders.ControlChartBuilder();
+        builder.containingElement = svg;
+        builder.containingElementDisplay = svgDisplay;
         builder.xAccessor = ((d) => { return d['x'] });
         builder.yAccessor = ((d) => { return d['y'] });
         builder.displayOptions = chartDispaly;
         builder.chartingAreaSelector = "test";
         builder.data = data;
         this.cc = builder.getObject();
-        this.cc.init(chart);
+        this.cc.smoothCurves = true;
+        this.cc.pointRadius = 3;
+        this.cc.init(chart,svg);
     }
     automate(rate: number) {
         this.interval = setInterval(() => {

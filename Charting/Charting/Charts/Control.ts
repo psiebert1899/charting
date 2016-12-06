@@ -12,6 +12,22 @@
         private numSds: number = 3;
         private _max: number;
         public statusMap: Util.SdStatusData[];
+        public xAxis: any;
+        public yAxis: any;
+        public xAxisGroup: any;
+        public yAxisGroup: any;
+        public pointRadius:number;
+        private _smoothCurves:boolean;
+        set smoothCurves(smooth: boolean) {
+            this._smoothCurves = smooth;
+            for (let x = 0; x < this._lines.length; x++) {
+                this._lines[x].smoothCurves = smooth;
+                this._lines[x].build();
+            }
+        }
+        get smoothCurves() {
+            return this._smoothCurves;
+        }
         get max() {
             return this._max;
         }
@@ -23,22 +39,21 @@
         constructor(xScale: Core.Objects.Scale, yScale: Core.Objects.Scale, xAccess: (d) => any, yAccess: (d) => any, data: any[],statusMap ?: Util.SdStatusData[]) {
             this._lines = new Array<Core.Objects.Line>();
             this._areas = new Array<Core.Objects.Area>();
+            this._points = new Array<Core.Objects.Point>();
             this._xScale = xScale;
             this._yScale = yScale;
             this._xAccess = xAccess;
             this._yAccess = yAccess;
             this.statusMap = statusMap;
             this.formatDataArray(data);
-            this.makeLines();
-            this.makeAreas();
-            this._points = new Array<Core.Objects.Point>();
-            this.makePoints();
+
         }
         init(caller: any) {
+            this.makePoints();
+            this.makeLines();
+            this.makeAreas();
             this.checkScaleUpdates();
-
             this.drawObjects(caller);
-            this.createAxis(caller);
             //same process for trend lines and points
             //also initialize axes and labels
         }
@@ -58,7 +73,16 @@
             this.drawAreas(caller);
             this.drawLines(caller);
             this.drawPoints(caller);
+            this.drawAxes(caller);
 
+        }
+        private drawAxes(caller: any) {
+            if (this.xAxisGroup !== undefined) {
+                this.xAxisGroup.call(this.xAxis);
+            }
+            if (this.yAxisGroup !== undefined) {
+                this.yAxisGroup.call(this.yAxis);
+            }
         }
         private drawLines(caller: any) {
             for (let x = 0; x < this._lines.length; x++) {
@@ -131,14 +155,14 @@
 
                 //now make the terminal areas (areas for the ends of the chart
             }
-            this._areas.push(new Core.Objects.Area(this._xScale, this._yScale, (d) => { return d['x'] }, (d) => { return d['sdNeg' + (this.numSds)] }, (d) => { return this._yScale.rangeMin }, this.getStatusObj(-this.numSds)));
+            this._areas.push(new Core.Objects.Area(this._xScale, this._yScale, (d) => { return d['x'] }, (d) => { return d['sdNeg' + (this.numSds)] }, (d) => { return this._yScale.getObject().invert(this._yScale.rangeMin)}, this.getStatusObj(-this.numSds)));
             this._areas.push(new Core.Objects.Area(this._xScale, this._yScale, (d) => { return d['x'] }, (d) => { return d['sd' + this.numSds] }, (d) => { return this._yScale.getObject().invert(this._yScale.rangeMax) }, this.getStatusObj(this.numSds)));
-
         }
         
 
         private makePoints() {
             this._points.push(new Core.Objects.Point(this._xScale, this._yScale, (d) => { return d['x'] }, (d) => { return d['y'] }));
+            this._points.forEach((p)=>{p.pointRadius=this.pointRadius})
         }
         private trimToMaxData(max: number) {
             this._formattedData = this._formattedData.slice(this._max * -1)
@@ -161,14 +185,10 @@
             if (maxmax > this._yScale.domainMax) {
                 this._yScale.domainMax = maxmax+500;
             }
-        }
-        private createAxis(caller: any) {
-            let yaxe = d3.axisLeft(this._yScale.getObject());
-            let xaxe = d3.axisBottom(this._xScale.getObject());
-
+            this.xAxis.scale(this._xScale.getObject());
+            this.yAxis.scale(this._yScale.getObject());
         }
         getStatusObj(sdNum: number): Util.SdStatusData {
-            console.log(this.statusMap);
             if (this.statusMap === null || this.statusMap === undefined) {
                 return new Util.SdStatusData();
             } else {

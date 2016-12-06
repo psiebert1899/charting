@@ -13,7 +13,8 @@ namespace Core.Objects {
             return this._yAccess;
         }
         private _d3Object: any;
-        private _standardStylingClassName="d3Line";
+        private _standardStylingClassName = "d3Line";
+        public smoothCurves:boolean=false;
 
         constructor(xScale, yScale, xAccess, yAccess,classNames?:string[]) {
             super();
@@ -40,13 +41,23 @@ namespace Core.Objects {
             if (this.selector === undefined || this.selector === null) {
                 this.assignUniqueSelector();
             }
-            this._d3Object = d3.line().x(
-                (d) => {
-                    return this._xScale.getObject()(this._xAccess(d));
-                }
-            ).y((d) => {
-                return this._yScale.getObject()(this._yAccess(d));
-            });
+            if (this.smoothCurves) {
+                this._d3Object = d3.line().curve(d3.curveCardinal).x(
+                    (d) => {
+                        return this._xScale.getObject()(this._xAccess(d));
+                    }
+                ).y((d) => {
+                    return this._yScale.getObject()(this._yAccess(d));
+                });
+            } else {
+                this._d3Object = d3.line().x(
+                    (d) => {
+                        return this._xScale.getObject()(this._xAccess(d));
+                    }
+                ).y((d) => {
+                    return this._yScale.getObject()(this._yAccess(d));
+                });
+            }
             return this._d3Object;
         }
         check() {
